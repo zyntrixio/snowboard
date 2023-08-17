@@ -2,122 +2,156 @@ import dash
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
+import dash_bootstrap_components as dbc
 import plotly.express as px
 import snowflake.connector
 import pandas as pd
+import env
+import query as q
 
 app = dash.Dash(__name__)
 
 cnn = snowflake.connector.connect(
-    user='DWBINKADMIN',
-    password='vXC9W8rvtKm73eLur9kKHc3uFA8L7KcWWrkzrfKVTwsWaD8pfmyPea',
-    account='ci34413.eu-west-2.aws',
-    warehouse='ANALYTICS',
-    role = 'ACCOUNTADMIN'
+    user=env.user,
+    password=env.password,
+    account=env.account,
+    warehouse=env.warehouse,
+    role = env.role
 )
 
-cs = cnn.cursor()
-sql = 'SELECT transaction_id FROM prod.bink_secure.fact_transaction WHERE duplicate_transaction = TRUE'
-cs.execute(sql)
-df = cs.fetch_pandas_all
-print(df)
-cs.close()
-cnn.close()
+# Create connection with snowflake
+def query_to_df(query):
+    cs = cnn.cursor()
+    sql = query
+    cs.execute(sql)
+    df = cs.fetch_pandas_all
+    print('query executed...')
+    print(query)
+    print("output:"+df.head(1))
+    cs.close()
+    cnn.close()
 
 
 # Sample data and graphs (replace with your own data)
 # Sample data is provided just for demonstration purposes
 
 # Sample data for graphs
-categories = ['Loyalty Cards', 'Payment Cards', 'Users', 'Transactions']
+class Graph:
+    def __init__(self, key, display_name, header, description, graph_type, query):
+        self.key = key
+        self.display_name = display_name
+        self.header = header
+        self.description = description
+        self.graph_type = graph_type #this will need working on to make it dynamic for now everyhting is bar
+        self.query = query
+        self.data = None
+        self.output = None
 
-overview_graphs = []
-detailed_graphs = []
-exploration_graphs = []
+    def create_graph_from_query(self):
+        cs = cnn.cursor()
+        sql = self.query
+        cs.execute(sql)
+        df = cs.fetch_pandas_all
+        self.dataframe = df
+        print('query executed...')
+        print(sql)
+        print("output:"+df.head(1))
+        cs.close()
+        cnn.close()
 
-for category in categories:
-    overview_graphs.append(
-        dcc.Graph(
-            id=f'{category.lower().replace(" ", "_")}_overview_graph',
-            figure=px.line(x=[1, 2, 3], y=[4, 2, 3], title=f'Overview Graph for {category}')
-        )
-    )
-    
-    detailed_graphs.append(
-        dcc.Graph(
-            id=f'{category.lower().replace(" ", "_")}_detailed_graph_1',
-            figure=px.bar(x=[1, 2, 3], y=[2, 3, 4], title=f'Detailed Graph 1 for {category}')
-        )
-    )
-    detailed_graphs.append(
-        dcc.Graph(
-            id=f'{category.lower().replace(" ", "_")}_detailed_graph_2',
-            figure=px.scatter(x=[1, 2, 3], y=[3, 4, 2], title=f'Detailed Graph 2 for {category}')
-        )
-    )
-    detailed_graphs.append(
-        dcc.Graph(
-            id=f'{category.lower().replace(" ", "_")}_exploration',
-            figure=px.line(x=[1, 2, 3], y=[2, 2, 2], title=f'Detailed Graph 3 for {category}')
-        )
-    )
+        if self.graph_type == "bar":
+            self.output = dcc.Graph(
+                id=self.key,
+                figure=px.bar(x=df[0]), y=df[1], title=self.header
+            )        
+
+
+class Section:
+    def __init__(self, key, display_name, header, description):
+        self.key = key
+        self.display_name = display_name
+        self.header = header
+        self.description = description
+        self.graphs = []
+        self.graph_displays = [graph.output for graph in self.graphs]
+
+    def add_graph(self, graph):
+        self.graphs.append(graph)
+
+class Category:
+    def __init__(self, key, display_name, header, description):
+        self.key = key
+        self.display_name = display_name
+        self.header = header
+        self.description = description
+        self.sections = []
+
+    def add_section(self, section):
+        self.sections.append(section)
+
+#Use pydantic models
+class DataStructure: 
+    def __init__(self):
+        self.categories=[]
+
+    def add_category(self, category):
+        self.categories.append(category)
+
+# Example usage
+data_structure = DataStructure()
+
+#Categories
+overview = Category("overview", "Overview", "Overview", "Graphs displaying overview data.")
+loyalty_cards = Category("loyalty_cards", "Loyalty Cards", "Loyalty Cards", "Graphs displaying loyalty card data.")
+
+data_structure.add_category(loyalty_cards)
+
+#sections
+lc_overview = Section("lc_overview", "Loyalty Cards Overview", "Loyalty Cards Overview", "Generic graphs for loyalty cards")
+
+overview.add_section(lc_overview)
+loyalty_cards.add_section(lc_overview)
+
+#graphs
+lc_successful_joins_graph = Graph("lc_successful_joins_graph", "Successful Joins", "Successful Joins", "Successful Joins", "bar", q.sql_joins_daily)
+lc_successful_links_graph = Graph("lc_successful_links_graph", "Successful Links", "Successful Links", "Successful Links", "bar", q.sql_links_daily)
+lc_combined_joins_graph = Graph("lc_combined_joins_graph", "Combined Joins", "Combined Joins", "Combined Joins", "bar", q.sql_combine_lc_daily)
+
+lc_overview.add_graph([lc_successful_joins_graph, lc_successful_links_graph, lc_combined_joins_graph])
+
+print('hiiiiiiii')
+def tabs_children():
+    tabs = []
+    for category in data_structure.categories:
+       tabs.append(dcc.Tab(label=category.display_name, value=category.key))
+    return tabs
 
 # App layout
 app.layout = html.Div([
-    dcc.Tabs(id='tabs', value='overview', children=[
-        dcc.Tab(label='Overview', value='overview'),
-        dcc.Tab(label='Loyalty Cards', value='loyalty_cards'),
-        dcc.Tab(label='Payment Cards', value='payment_cards'),
-        dcc.Tab(label='Users', value='users'),
-        dcc.Tab(label='Transactions', value='transactions'),
-    ]),
+    dcc.Tabs(id='tabs', value='overview', children=tabs_children()),
     html.Div(id='page-content')
 ])
 
 # Callback to update page content based on selected tab
 @app.callback(Output('page-content', 'children'), [Input('tabs', 'value')])
 def display_content(selected_tab):
-    if selected_tab == 'overview':
-        return html.Div([
-            html.H1('High-Level Overview'),
-            html.Div([
-                html.H2('Loyalty Cards'),
-                *overview_graphs[:3]
-            ]),
-            html.Div([
-                html.H2('Payment Cards'),
-                *overview_graphs[3:6]
-            ]),
-            html.Div([
-                html.H2('Users'),
-                *overview_graphs[6:9]
-            ]),
-            html.Div([
-                html.H2('Transactions'),
-                *overview_graphs[9:12]
-            ])
-        ])
-    else:
-        category_index = categories.index(selected_tab.capitalize())
-        return html.Div([
-            html.H1(f'{selected_tab} Details'),
-            html.Div([
-                html.H2('Section 1'),
-                *detailed_graphs[category_index * 12: category_index * 12 + 3]
-            ]),
-            html.Div([
-                html.H2('Section 2'),
-                *detailed_graphs[category_index * 12 + 3: category_index * 12 + 6]
-            ]),
-            html.Div([
-                html.H2('Section 3'),
-                *detailed_graphs[category_index * 12 + 6: category_index * 12 + 9]
-            ]),
-            html.Div([
-                html.H2('Section 4'),
-                *detailed_graphs[category_index * 12 + 9: category_index * 12 + 12]
-            ])
-        ])
+    layout = []
+    for category in data_structure.categories:
+        if category.key == selected_tab:
+            print(category.display_name)
+            for section in category.sections:
+                layout.append(
+                    html.Div(
+                        html.H1(category.display_name),
+                        html.Div([
+                            html.H2(section.display_name),
+                            *section.graph_displays
+                        ])
+                    )
+                )
+                print(layout)
+    return html.Div([layout])
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
