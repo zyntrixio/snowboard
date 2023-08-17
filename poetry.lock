@@ -344,13 +344,13 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "dash"
-version = "2.12.0"
+version = "2.12.1"
 description = "A Python framework for building reactive web-apps. Developed by Plotly."
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "dash-2.12.0-py3-none-any.whl", hash = "sha256:eb9b6b7f5f534ac4c827d63a560a9f1f0708c30b0faa57aa578d595dbfffad50"},
-    {file = "dash-2.12.0.tar.gz", hash = "sha256:1e808437c492ce526222e953be196116172e8c248629bf76debe86cb0b96733a"},
+    {file = "dash-2.12.1-py3-none-any.whl", hash = "sha256:23fcde95e59e353c34712c8fa3e90e784a7247a9e5f6ef47e467add10b7e91ab"},
+    {file = "dash-2.12.1.tar.gz", hash = "sha256:c7d3dccafff2d041a371dcf5bbb2a1701a38ca178c12dce93e64207e3aecbaeb"},
 ]
 
 [package.dependencies]
