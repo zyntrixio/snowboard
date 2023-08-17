@@ -13,6 +13,9 @@ plotly = "^5.16.0"
 pandas = "^2.0.3"
 snowflake-connector-python = {extras = ["pandas"], version = "^3.1.0"}
 
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.284"
+black = "^23.7.0"
 
 [build-system]
 requires = ["poetry-core"]
