@@ -1,20 +1,16 @@
-import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.wsgi import WSGIMiddleware
-from app import app as dashboard
+from app import app as dash
+import uvicorn
 
-
-# Define the FastAPI server
 app = FastAPI()
-
-# Mount
-app.mount("/dashboard", WSGIMiddleware(dashboard.server)) # type: ignore
+app.mount("/dashboard", WSGIMiddleware(dash.server)) # type: ignore
 
 
 @app.get("/")
 def index():
-    return "ROUTE ACTIVE"
+    return "hello"
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0")
+    uvicorn.run("main:app", host="127.0.0.1", port=8080, reload=True)
