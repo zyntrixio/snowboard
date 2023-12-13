@@ -3,8 +3,6 @@ from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
 import plotly.express as px
-import snowflake.connector
-import pandas as pd
 from env import cnn
 
 app = dash.Dash(__name__, requests_pathname_prefix="/dashboard/")
