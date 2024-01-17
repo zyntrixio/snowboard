@@ -3,17 +3,6 @@ Welcome to Project Snowboard
 
 We will be using a Dash by Plotly Dashboard to replace Tableau as our visualisation tool.
 
-This project is a FastAPI Route with attached Dash Plotly applications.
-
-The component strucutre is as follows:
-
-```
-|
-main.py
-|
-app.py
-```
-
 Further documentation on the structure and architecture will be available on confluence in due time.
 
 == THIS IS CURRENTLY A POC AND SHOULD NOT BE USED FOR EXTERNAL REPORTING ==
@@ -47,16 +36,15 @@ poetry shell
 poetry install
 ```
 
-
 ## Usage
 
 To serve the code locally, use the below.
 
 ```Shell
-poetry run python -m main
+poetry run python -m app
 ```
 
-Then proceed to the route ```/dashboard``` to load up the dash by plotly dashboard.
+Then proceed to the route ```http://127.0.0.1:8050/``` to load up the dash by plotly dashboard.
 
 This will update when we add additional routes and a landing page to navigate routes.
 
