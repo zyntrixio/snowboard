@@ -1,11 +1,11 @@
-import dash
+from dash import Dash
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
 import plotly.express as px
 from env import cnn
 
-app = dash.Dash(__name__, requests_pathname_prefix="/dashboard/")
+app = Dash(__name__)
 
 cs = cnn.cursor()
 sql = "SELECT transaction_id FROM prod.bink_secure.fact_transaction WHERE duplicate_transaction = TRUE"
