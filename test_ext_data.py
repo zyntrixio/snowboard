@@ -12,7 +12,7 @@ def test_fetch_data_from_snowflake(mocker):
 
     mock_connection = mocker.MagicMock()
     mock_connection.cursor.return_value = mock_cursor
-    mocker.patch('your_module.snowflake.connector.connect',
+    mocker.patch('env.snowflake.connector.connect',
                  return_value=mock_connection)
 
     # Call the function
