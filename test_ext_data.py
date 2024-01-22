@@ -15,7 +15,7 @@ def test_fetch_data_from_snowflake(mocker):
                  return_value=mock_connection)
 
     # Call the function
-    result_df = fetch_data_from_snowflake("SELECT * FROM SANDBOX.CM_SANDBOX.QA_DATA_TEST")
+    result_df = fetch_data_from_snowflake("SELECT * FROM SANDBOX.CM_SANDBOX.QA_DATA_TEST")  # noqa: E501
 
     # Assertions
     assert isinstance(result_df, pd.DataFrame)
