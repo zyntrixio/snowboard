@@ -1,5 +1,4 @@
 import pandas as pd
-import pytest
 from ext_data import fetch_data_from_snowflake
 
 def test_fetch_data_from_snowflake(mocker):
