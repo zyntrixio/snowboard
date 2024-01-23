@@ -6,7 +6,7 @@ def test_fetch_data_from_snowflake(mocker):
     # Mock the Snowflake connector
     mock_cursor = mocker.MagicMock()
     mock_cursor.execute.return_value = None
-    mock_cursor.description = [("column1",), ("column2",)]
+    mock_cursor.description = [("COLUMN_1",), ("COLUMN_2",)]
     mock_cursor.__iter__.return_value = iter([("value1", "value2")])
 
     mock_connection = mocker.MagicMock()
@@ -15,9 +15,9 @@ def test_fetch_data_from_snowflake(mocker):
                  return_value=mock_connection)
 
     # Call the function
-    result_df = fetch_data_from_snowflake("SELECT * FROM SANDBOX.CM_SANDBOX.QA_DATA_TEST")  # noqa: E501
+    result_df = fetch_data_from_snowflake("SELECT * FROM sandbox.cm_sandbox.connection_test")  # noqa: E501
 
     # Assertions
     assert isinstance(result_df, pd.DataFrame)
-    assert list(result_df.columns) == ["column1", "column2"]
-    assert result_df.iloc[0].tolist() == ["value1", "value2"]
+    assert list(result_df.columns) == ["COLUMN_1", "COLUMN_2"]
+    assert result_df.iloc[0].tolist() == [1, 1]
