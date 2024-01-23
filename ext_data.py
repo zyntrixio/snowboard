@@ -3,11 +3,13 @@ from typing import Optional
 from env import cnn
 
 def fetch_data_from_snowflake(sql_command: str) -> Optional[pd.DataFrame]:
-    """Executes a SQL command on a Snowflake data warehouse
-       and returns the results as a Pandas DataFrame.
+    """A function to get data from snowflake
 
-    :param sql_command: SQL query to execute
-    :return: Pandas DataFrame containing the query results or None if an error occurs
+    Args:
+        sql_command (str): takes SQL statement as string
+
+    Returns:
+        Optional[pd.DataFrame]: Returns a pandas dataframe
     """
 
     try:
