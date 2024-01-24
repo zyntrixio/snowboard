@@ -1,7 +1,5 @@
-from dash import Dash, html, dcc, Input, Output
-import plotly.express as px
+from dash import Dash, html, dcc
 from ext_data import fetch_data_from_snowflake
-from datetime import datetime as dt
 import pandas as pd
 
 app = Dash(__name__)
@@ -19,10 +17,10 @@ app.layout = html.Div(
         # Table at the top
         html.Table(
             [
-                html.Tr([html.Th(col) for col in df.columns]),
+                html.Tr([html.Th(col) for col in df_usr.columns]),
                 *[
                     html.Tr([html.Td(df_usr.iloc[i][col]) for col in df_usr.columns])
-                    for i in range(len(df))
+                    for i in range(len(df_usr))
                 ],
             ]
         ),
@@ -31,14 +29,14 @@ app.layout = html.Div(
             figure={
                 "data": [
                     {
-                        "x": df["Date"],
-                        "y": df["Period_Joins"],
+                        "x": df_usr["Date"],
+                        "y": df_usr["Period_Joins"],
                         "type": "bar",
                         "name": "Period_Joins",
                     },
                     {
-                        "x": df["Date"],
-                        "y": df["Cumulative_Joins"],
+                        "x": df_usr["Date"],
+                        "y": df_usr["Cumulative_Joins"],
                         "type": "line",
                         "name": "Cumulative_Joins",
                     },
@@ -49,19 +47,19 @@ app.layout = html.Div(
         # Two tables at the bottom
         html.Table(
             [
-                html.Tr([html.Th(col) for col in df.columns]),
+                html.Tr([html.Th(col) for col in df_usr.columns]),
                 *[
-                    html.Tr([html.Td(df.iloc[i][col]) for col in df.columns])
-                    for i in range(len(df))
+                    html.Tr([html.Td(df_usr.iloc[i][col]) for col in df_usr.columns])
+                    for i in range(len(df_usr))
                 ],
             ]
         ),
         html.Table(
             [
-                html.Tr([html.Th(col) for col in df.columns]),
+                html.Tr([html.Th(col) for col in df_usr.columns]),
                 *[
-                    html.Tr([html.Td(df.iloc[i][col]) for col in df.columns])
-                    for i in range(len(df))
+                    html.Tr([html.Td(df_usr.iloc[i][col]) for col in df_usr.columns])
+                    for i in range(len(df_usr))
                 ],
             ]
         ),
