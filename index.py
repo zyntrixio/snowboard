@@ -9,7 +9,7 @@ from app import server
 
 # Connect to your app pages
 from pages import ext_transactions
-
+from pages import ext_loyaltycards
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -17,7 +17,7 @@ app.layout = html.Div([
         dbc.Nav([
             dbc.NavLink("Transactions", active=True, href="/pages/ext_txns"),
             dbc.NavLink("Payment Cards", href="/pages/pc_graphs"),
-            dbc.NavLink("Loyalty Cards", href="/pages/txn_graphs")
+            dbc.NavLink("Loyalty Cards", href="/pages/ext_lc")
         ])
     ),
     html.Div(dbc.Row([
@@ -40,7 +40,9 @@ app.layout = html.Div([
               [Input('url', 'pathname')])
 def display_page(pathname):
     if pathname == '/pages/ext_txns':
-        return ext_transactions.layout      
+        return ext_transactions.layout   
+    elif pathname == '/pages/ext_lc':
+        return ext_loyaltycards.layout   
     else:
         return "404 Page Error! Please choose a link"
 
