@@ -41,7 +41,7 @@ poetry install
 To serve the code locally, use the below.
 
 ```Shell
-poetry run python -m app
+poetry run python -m index
 ```
 
 Then proceed to the route ```http://127.0.0.1:8050/``` to load up the dash by plotly dashboard.
