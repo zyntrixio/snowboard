@@ -21,6 +21,3 @@ def fetch_data_from_snowflake(sql_command: str) -> Optional[pd.DataFrame]:
         return df
     except Exception as e:
         print(f"An error occured: {e}")
-    finally:
-        cnn.close()
-
