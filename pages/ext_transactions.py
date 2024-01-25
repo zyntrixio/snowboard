@@ -2,20 +2,12 @@
 # from turtle import left, width
 import pandas as pd
 import plotly.express as px  # (version 4.7.0 or higher)
-import plotly.graph_objects as go
-import dash
 from dash import dcc
 from dash import html
 from dash import dash_table
-from dash.dependencies import (
-    Input,
-    Output,
-)  # pip install dash (version 2.0.0 or higher)
 import dash_bootstrap_components as dbc
-from loguru import logger
 from datetime import datetime, timedelta
 from ext_data import fetch_data_from_snowflake
-from app import app
 
 # %%
 

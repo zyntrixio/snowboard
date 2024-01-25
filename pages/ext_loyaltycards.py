@@ -1,13 +1,9 @@
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 from dash import dcc, html, dash_table
-from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
-from loguru import logger
 from datetime import datetime, timedelta
 from ext_data import fetch_data_from_snowflake
-from app import app
 
 loyalty_card_query: str = """SELECT * FROM output.ext.ext_dashboard_view_lc_txns 
                             where DATE > '2023-02-01' and CATEGORY = 'LOYALTY CARD';"""

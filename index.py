@@ -5,7 +5,6 @@ import dash_bootstrap_components as dbc
 
 # Connect to main app.py file
 from app import app
-from app import server
 
 # Connect to your app pages
 from pages import ext_transactions
