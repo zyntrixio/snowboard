@@ -1,78 +1,71 @@
-# %%
-# from turtle import left, width
-import pandas as pd
-import plotly.express as px  # (version 4.7.0 or higher)
-from dash import dcc
-from dash import html
-from dash import dash_table
+"""Loyalty Cards Page."""
+
 import dash_bootstrap_components as dbc
-from datetime import datetime, timedelta
-from ext_data import fetch_data_from_snowflake
+import pandas as pd
+import pendulum
+import plotly.express as px
+from dash import dash_table, dcc, html
 
-# %%
+from snowboard.snowflake import fetch_data_from_snowflake
 
-txns_query: str = """SELECT * FROM output.ext.ext_dashboard_view_lc_txns 
-                     where DATE > '2023-02-01'
-                     and CATEGORY = 'TRANSACTIONS';"""
+loyalty_card_query: str = """SELECT * FROM output.ext.ext_dashboard_view_lc_txns
+                            where DATE > '2023-02-01' and CATEGORY = 'LOYALTY CARD';"""
 
-df_txn = pd.DataFrame(fetch_data_from_snowflake(txns_query))
+df_loyalty_card = pd.DataFrame(fetch_data_from_snowflake(loyalty_card_query))
 
-df_txn.rename(
+df_loyalty_card.rename(
     columns={
         "DATE": "Date",
         "LOYALTY_PLAN_COMPANY": "Retailer",
         "CHANNEL": "Channel",
         "BRAND": "Brand",
-        "T075__TXNS__DAILY_CHANNEL_BRAND_RETAILER__DCOUNT": "Transaction Count",
-        "T069__TXNS__DAILY_CHANNEL_BRAND_RETAILER__CSUM": "Transaction Cumulative",
+        "LC013__SUCCESSFUL_LOYALTY_CARD_JOINS__DAILY_CHANNEL_BRAND_RETAILER__COUNT": "Period Joins",
+        "LC009__SUCCESSFUL_LOYALTY_CARD_LINKS__DAILY_CHANNEL_BRAND_RETAILER__COUNT": "Period Links",
+        "LC021__SUCCESSFUL_LOYALTY_CARD_JOINS__DAILY_CHANNEL_BRAND_RETAILER__DCOUNT_USER": "Distinct Joins",
+        "LC017__SUCCESSFUL_LOYALTY_CARD_LINKS__DAILY_CHANNEL_BRAND_RETAILER__DCOUNT_USER": "Distinct Links",
+        "LC075__SUCCESSFUL_LOYALTY_CARD_JOINS__DAILY_CHANNEL_BRAND_RETAILER__CSUM": "Cumulative Joins",
+        "LC079__SUCCESSFUL_LOYALTY_CARD_LINKS__DAILY_CHANNEL_BRAND_RETAILER__CSUM": "Cumulative Links",
     },
-    inplace=True,
+    inplace=True,  # noqa: PD002
 )
 
-# %%
-df_txn__ttab = df_txn.pivot_table(
-    values="Transaction Count",
+
+df_lc__tab = df_loyalty_card.pivot_table(
+    values="Period Joins",
     index=["Retailer"],
     columns=["Brand"],
     aggfunc="sum",
     fill_value=0,
 )
-df_txn__ttab = df_txn__ttab.reset_index()
-df_txn__ttab.columns = df_txn__ttab.columns.astype("str")
-df_txn__ttab
-# %%
-# %%
-df_txn__lbg_graph = df_txn[df_txn["Channel"] == "LLOYDS"]
-df_txn__mixr_graph = df_txn[df_txn["Channel"] == "MIXR"]
-# df_txn__btab1 = df_txn.groupby(["Date","Channel"]).sum()["Transaction Count"].reset_index()
-# %%
-last_14 = datetime.today().date() - timedelta(days=14)
-df_txn__btab1 = df_txn[df_txn["Date"] > last_14].pivot_table(
-    values="Transaction Count",
-    index=["Channel"],
-    columns=["Date"],
-    aggfunc="sum",
-    fill_value=0,
-)
-df_txn__btab1 = df_txn__btab1.reset_index()
-df_txn__btab1.columns = df_txn__btab1.columns.astype("str")
-# %%
-df_txn__btab2 = df_txn.copy()
-df_txn__btab2["Date"] = pd.to_datetime(df_txn__btab2["Date"]).dt.to_period("M")
-df_txn__btab2 = df_txn__btab2.pivot_table(
-    values="Transaction Count",
-    index=["Channel"],
-    columns=["Date"],
-    aggfunc="sum",
-    fill_value=0,
-)
-df_txn__btab2 = df_txn__btab2.reset_index()
-df_txn__btab2.columns = df_txn__btab2.columns.astype("str")
+df_lc__tab = df_lc__tab.reset_index()
+df_lc__tab.columns = df_lc__tab.columns.astype("str")
 
-# %%
-# %%
-# ------------------------------------------------------------------------------
-# App layout - everything in the dash goes in here including the HTML
+df_lc__lbg_graph = df_loyalty_card[df_loyalty_card["Channel"] == "LLOYDS"]
+df_lc__mixr_graph = df_loyalty_card[df_loyalty_card["Channel"] == "MIXR"]
+
+last_14 = pendulum.today().subtract(days=14).date()
+df_lc__btab1 = df_loyalty_card[df_loyalty_card["Date"] > last_14].pivot_table(
+    values="Period Joins",
+    index=["Channel"],
+    columns=["Date"],
+    aggfunc="sum",
+    fill_value=0,
+)
+df_lc__btab1 = df_lc__btab1.reset_index()
+df_lc__btab1.columns = df_lc__btab1.columns.astype("str")
+
+df_lc__btab2 = df_loyalty_card.copy()
+df_lc__btab2["Date"] = pd.to_datetime(df_lc__btab2["Date"]).dt.to_period("M")
+df_lc__btab2 = df_lc__btab2.pivot_table(
+    values="Period Joins",
+    index=["Channel"],
+    columns=["Date"],
+    aggfunc="sum",
+    fill_value=0,
+)
+df_lc__btab2 = df_lc__btab2.reset_index()
+df_lc__btab2.columns = df_lc__btab2.columns.astype("str")
+
 layout = dbc.Container(
     [
         dbc.Row(
@@ -80,14 +73,14 @@ layout = dbc.Container(
                 dbc.Col(
                     [
                         html.H2(
-                            "Total Matched Transactions by Merchant and Channel",
+                            "Total Joins by Retailer and Channel",
                             className="text-center text-secondary, mb-4",
                             style={"text-align": "center"},
                         ),
                         html.Br(),
                         dash_table.DataTable(
-                            df_txn__ttab.to_dict("records"),
-                            [{"name": i, "id": i} for i in df_txn__ttab.columns],
+                            df_lc__tab.to_dict("records"),
+                            [{"name": i, "id": i} for i in df_lc__tab.columns],
                             id="txn_by_merchant",
                             style_cell={
                                 "textAlign": "left",
@@ -95,9 +88,7 @@ layout = dbc.Container(
                                 "fontSize": "25",
                                 "font-weight": 300,
                             },
-                            style_cell_conditional=[
-                                {"if": {"column_id": "name"}, "width": "30%"}
-                            ],
+                            style_cell_conditional=[{"if": {"column_id": "name"}, "width": "30%"}],
                             style_header={
                                 "backgroundColor": "rgb(30, 30, 30)",
                                 "color": "white",
@@ -125,24 +116,6 @@ layout = dbc.Container(
             ],
             justify="around",
         ),
-        # dbc.Row([
-        #     dbc.Col(
-        #         [
-        #             dcc.Dropdown(id="slct_year_txn",
-        #                 options=[
-        #                     {"label": "2019", "value": 2023},
-        #                     {"label": "2020", "value": 2024}],
-        #                 multi=False,
-        #                 value=2024,
-        #                 style={'width': "40%"},
-        #                 persistence=True,
-        #                 persistence_type='local'
-        #                 ),
-        #             html.Div(id='output_container_txn', children=[]),
-        #             ],
-        #         xs=12, sm=12, md=12, lg=6, xl=6
-        #         )
-        #     ]),
         dbc.Row(
             [
                 dbc.Col(
@@ -151,21 +124,21 @@ layout = dbc.Container(
                         dcc.Graph(
                             id="txn_by_merchant",
                             figure=px.bar(
-                                data_frame=df_txn__lbg_graph,
+                                data_frame=df_lc__lbg_graph,
                                 x="Date",
-                                y="Transaction Count",
+                                y="Period Joins",
                                 color="Retailer",
-                                hover_data=["Retailer", "Transaction Count"],
+                                hover_data=["Retailer", "Period Joins"],
                                 template="plotly_dark",
                             ),
                         ),
-                    ],  # width ={'size':6, 'offset':0,'order':1}
+                    ],
                     xs=12,
                     sm=12,
                     md=12,
                     lg=6,
                     xl=6,
-                )
+                ),
             ],
             justify="around",
         ),
@@ -177,21 +150,21 @@ layout = dbc.Container(
                         dcc.Graph(
                             id="txn_by_merchant",
                             figure=px.bar(
-                                data_frame=df_txn__mixr_graph,
+                                data_frame=df_lc__mixr_graph,
                                 x="Date",
-                                y="Transaction Count",
+                                y="Period Joins",
                                 color="Retailer",
-                                hover_data=["Retailer", "Transaction Count"],
+                                hover_data=["Retailer", "Period Joins"],
                                 template="plotly_dark",
                             ),
                         ),
-                    ],  # width ={'size':6, 'offset':0,'order':1}
+                    ],
                     xs=12,
                     sm=12,
                     md=12,
                     lg=6,
                     xl=6,
-                )
+                ),
             ],
             justify="around",
         ),
@@ -206,8 +179,8 @@ layout = dbc.Container(
                         ),
                         html.Br(),
                         dash_table.DataTable(
-                            df_txn__btab1.to_dict("records"),
-                            [{"name": i, "id": i} for i in df_txn__btab1.columns],
+                            df_lc__btab1.to_dict("records"),
+                            [{"name": i, "id": i} for i in df_lc__btab1.columns],
                             id="txn_by_channel",
                             style_cell={
                                 "textAlign": "left",
@@ -215,9 +188,7 @@ layout = dbc.Container(
                                 "fontSize": "25",
                                 "font-weight": 300,
                             },
-                            style_cell_conditional=[
-                                {"if": {"column_id": "name"}, "width": "30%"}
-                            ],
+                            style_cell_conditional=[{"if": {"column_id": "name"}, "width": "30%"}],
                             style_header={
                                 "backgroundColor": "rgb(30, 30, 30)",
                                 "color": "white",
@@ -257,8 +228,8 @@ layout = dbc.Container(
                         ),
                         html.Br(),
                         dash_table.DataTable(
-                            df_txn__btab2.to_dict("records"),
-                            [{"name": i, "id": i} for i in df_txn__btab2.columns],
+                            df_lc__btab2.to_dict("records"),
+                            [{"name": i, "id": i} for i in df_lc__btab2.columns],
                             id="txn_by_channel",
                             style_cell={
                                 "textAlign": "left",
@@ -266,9 +237,7 @@ layout = dbc.Container(
                                 "fontSize": "25",
                                 "font-weight": 300,
                             },
-                            style_cell_conditional=[
-                                {"if": {"column_id": "name"}, "width": "30%"}
-                            ],
+                            style_cell_conditional=[{"if": {"column_id": "name"}, "width": "30%"}],
                             style_header={
                                 "backgroundColor": "rgb(30, 30, 30)",
                                 "color": "white",
@@ -299,5 +268,3 @@ layout = dbc.Container(
     ],
     fluid=True,
 )
-
-# %%

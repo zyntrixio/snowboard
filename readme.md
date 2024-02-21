@@ -9,42 +9,38 @@ Further documentation on the structure and architecture will be available on con
 
 ## Installation
 
-Firstly, ensure that Python3, Poetry, and Git are installed on your system. Then clone the repository:
+Firstly, ensure that Python 3.11 and Poetry are installed on your system:
 
-```Shell
-git clone {SSH/URL}
+```shell
+$ brew install python@3.11 poetry
 ```
 
-Then proceed to set up the `env.py` file with your snowflake connection for local development.
+Clone the repository:
 
-```Python
-import snowflake.connector
-
-# Connecting to Snowflake using the default authenticator
-conn = snowflake.connector.connect(
-    user="USERNAME",
-    password="PASSWORD",
-    account="PROD URL",
-    warehouse="WAREHOUSE",
-    database="DATABASE",
-    schema="SCHEMA"
-)
+```shell
+$ git clone git@github.com:binkhq/snowboard.git
 ```
-Finally, run the virtual environment via Poetry to begin development.
-```Shell
-poetry shell
-poetry install
+
+Set the `keyvault_url` with the desired Snowflake credenitals in your `.env` file, example:
+```
+KEYVAULT_URL=https://uksouth-staging-232w.vault.azure.net/
+```
+
+Setup a virtual environment via Poetry to begin development.
+```shell
+$ poetry install
+$ poetry shell
 ```
 
 ## Usage
 
 To serve the code locally, use the below.
 
-```Shell
-poetry run python -m index
+```shell
+snowboard --debug
 ```
 
-Then proceed to the route ```http://127.0.0.1:8050/``` to load up the dash by plotly dashboard.
+Then proceed to the route ```http://127.0.0.1:6502/``` to load up the dash by plotly dashboard.
 
 This will update when we add additional routes and a landing page to navigate routes.
 
@@ -68,9 +64,8 @@ Please ensure that you follow the below steps to contribute to this repository.
 
 If you have installed new dependancies to the venv, then run the below command:
 
-```Shell
+```shell
 poetry add {pagckage name} # to add new package
-poetry update # to update dependancies
 ```
 
 This will allow other developers to install these dependancies on their system as well as update production.
